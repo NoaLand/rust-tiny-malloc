@@ -1,19 +1,28 @@
-use std::alloc::{GlobalAlloc, Layout};
+use std::alloc::{GlobalAlloc, Layout, System};
+use std::sync::atomic::{AtomicUsize, Ordering::SeqCst};
 
-struct NullAllocator;
+static ALLOCATED: AtomicUsize = AtomicUsize::new(0);
 
-unsafe impl GlobalAlloc for NullAllocator {
-    unsafe fn alloc(&self, _layout: Layout) -> *mut u8 {
-        std::ptr::null_mut()
+struct Counter;
+
+unsafe impl GlobalAlloc for Counter {
+    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+        let ret = System.alloc(layout);
+        if !ret.is_null() {
+            ALLOCATED.fetch_add(layout.size(), SeqCst);
+        }
+        return ret;
     }
 
-    unsafe fn dealloc(&self, _ptr: *mut u8, _layout: Layout) {
-        panic!("won't deallocate: we never allocate!");
+    unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+        System.dealloc(ptr, layout);
+        ALLOCATED.fetch_sub(layout.size(), SeqCst);
     }
 }
 
 #[global_allocator]
-static A: NullAllocator = NullAllocator;
+static A: Counter = Counter;
 
 fn main() {
+    println!("allocated before main: {:?}", ALLOCATED.load(SeqCst));
 }
