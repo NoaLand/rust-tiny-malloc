@@ -8,6 +8,10 @@ Will implement it sooner or later.
 Follow the link [Allocation API, allocators and virtual memory](https://notes.iveselov.info/programming/allocation-api-and-allocators) to understand the logic inside the allocator in rust,
 and then I will try to follow the other link to implement my own malloc & allocator
 
+As the blog mentions, you can run command `pagesize` directly on your Mac, it will return the OS managed fixed size chunk memory. The result should look like below:
+
+![mac_pagesize](./images/mac_pagesize.png)
+
 ## Reference
 I get inspiration from the following link:
 
